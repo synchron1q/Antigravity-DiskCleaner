@@ -1,0 +1,14 @@
+{
+  "name": "disk-cleaner",
+  "displayName": "Disk Cleaner",
+  "version": "1.0.0",
+  "description": "Умный помощник для анализа дискового пространства Windows, поиска системного мусора, кэшей, забытых загрузок, дубликатов и безопасной очистки (Dry-Run + Корзина) с интерактивным Generative UI дашбордом.",
+  "logo": "assets/logo.svg",
+  "author": "synchron1q",
+  "repository": "https://github.com/synchron1q/Antigravity-DiskCleaner",
+  "suggestedPrompts": [
+    "Проанализируй мой диск и покажи интерактивный дашборд с мусором и тяжелыми файлами",
+    "Найди весь системный мусор, старые загрузки и дубликаты в режиме Dry-Run",
+    "Очисти безопасный временный кэш и отправь лишний мусор в Корзину"
+  ]
+}
