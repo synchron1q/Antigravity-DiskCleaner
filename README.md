@@ -10,9 +10,50 @@
 
 **Интеллектуальный помощник для глубокого анализа дискового пространства Windows, поиска системного и браузерного мусора, кэшей разработки, дубликатов по SHA-256 и безопасной очистки с интерактивным Generative UI дашбордом.**
 
-[Ключевые возможности](#-ключевые-возможности) • [Результаты очистки](#-реальные-показатели-очистки-кейс) • [Архитектура безопасности](#-архитектура-безопасности-и-guardrails) • [Инструменты MCP](#-инструменты-mcp-сервера) • [Быстрый старт](#-быстрый-старт)
+[💬 English FAQ](#-quick-faq-frequently-asked-questions) • [О проекте](#-о-проекте) • [Результаты очистки](#-реальные-показатели-очистки-кейс) • [Архитектура безопасности](#-архитектура-безопасности-и-guardrails) • [Инструменты MCP](#-инструменты-mcp-сервера) • [Быстрый старт](#-быстрый-старт)
 
 </div>
+
+---
+
+## 💬 Quick FAQ (Frequently Asked Questions)
+
+> **Fast Answers:** [What is this?](#1-what-is-antigravity-disk-cleaner) • [Safety & Guardrails](#2-how-does-it-guarantee-safety-and-prevent-data-loss) • [19.2 GB Benchmark](#3-how-did-it-free-1918-gb-in-a-real-run) • [Admin / UAC](#4-does-it-require-administrator-privileges) • [Standalone Usage](#5-can-it-be-used-without-google-antigravity) • [Duplicates](#6-how-does-duplicate-detection-work)
+
+### 1. What is Antigravity Disk Cleaner?
+**Antigravity Disk Cleaner** is an intelligent Windows storage analyzer and safe cleaner skill/plugin tailored for **Google Antigravity**. Powered by the **Model Context Protocol (MCP)**, it gives AI coding assistants native tools to discover disk hogs, inspect system/browser caches, locate 100% SHA-256 duplicate files, and present interactive Generative UI dashboards directly within the chat interface — with **zero external pip dependencies** (built purely on the native Windows Win32 API).
+
+### 2. How does it guarantee safety and prevent data loss?
+Data safety is governed by three strict layers of protection:
+1. **Dry-Run First Principle**: The agent always simulates operations first. In-use locked files (e.g., active browser cache files, database logs) are safely detected and skipped without throwing fatal exceptions.
+2. **Windows Recycle Bin by default (`SHFileOperationW`)**: Cleaned files are moved to the Windows Recycle Bin with undo flags enabled (`FOF_ALLOWUNDO`). Any removed file can be restored with a single click. Permanent deletion is only executed when explicitly commanded by the user.
+3. **Protected Paths Blacklist**: Operations inside `C:\Windows\System32`, `SysWOW64`, `WinSxS`, development environments (**Visual Studio**, **.NET SDK**, **VS Code**), and user projects/courseworks are strictly blocked.
+
+### 3. How did it free +19.18 GB in a real run?
+In a stress test on a production Windows system SSD (Drive C:), the cleaner boosted free space from **22.70 GB (10.2%)** to **41.88 GB (18.8%)** — freeing **19.18 GB** in total:
+- **12.40 GB**: Windows update caches (`SoftwareDistribution`), crash dumps, WER error reports, and user temp files.
+- **3.40 GB**: Orphaned game caches, replay clips, and mod files (BeamNG.drive).
+- **1.90 GB**: Steam client cache and temp package data.
+- **0.70 GB**: Minecraft and launcher runtime data (`.minecraft`, `.tlauncher`).
+- **0.58 GB**: Cloud cache (Google DriveFS) and user-level AppData residues.
+- *(An additional **+6.88 GB** is packaged into an automated UAC script for elevated app uninstallation, bringing total potential recovery to **+26.0 GB**).*
+
+### 4. Does it require Administrator privileges?
+**No, not for everyday cleaning.** User temp files (`%TEMP%`), browser caches (Chrome, Edge, Firefox, Brave), developer package caches (`pip`, `npm`, `uv`), and Recycle Bin management run under standard user rights without elevation. For system-wide software uninstallation (`C:\Program Files`), the project supplies `Uninstall-ApprovedApps.bat`, which requests standard Windows UAC elevation only when removing those specific apps.
+
+### 5. Can it be used without Google Antigravity?
+**Yes.** The core engine (`skills/disk-cleaner/scripts/disk_cleaner_core.py`) is completely self-contained:
+- **CLI scan & report:** `python skills/disk-cleaner/scripts/disk_cleaner_core.py --scan --html-out ui/dashboard.html`
+- **Safe cleanup:** `python skills/disk-cleaner/scripts/disk_cleaner_core.py --clean-ids "user_temp,chrome_cache" --execute --mode recycle`
+- **Local Web Dashboard:** run `scripts/Start-DiskCleaner.bat` or `python skills/disk-cleaner/scripts/disk_cleaner_core.py --serve --port 8765` to open the interactive UI in any browser.
+
+### 6. How does duplicate detection work?
+It utilizes a high-performance multi-phase pipeline:
+1. Filters files by minimum file size threshold (e.g., `> 20 MB`).
+2. Groups candidates by exact byte size.
+3. Reads header chunks to eliminate false candidates.
+4. Computes full **SHA-256 cryptographic hashes** only on matching collisions.  
+This guarantees **100% duplicate accuracy** with zero false matches.
 
 ---
 
