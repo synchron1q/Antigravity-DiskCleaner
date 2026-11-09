@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="16" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer rounded badge with ~11% margin (14px) -->
+  <rect x="14" y="14" width="100" height="100" rx="24" fill="url(#bgGrad)" />
+  <rect x="16" y="16" width="96" height="96" rx="22" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2"/>
+  
+  <!-- Hard drive body -->
+  <rect x="30" y="34" width="68" height="60" rx="10" fill="#0F172A" fill-opacity="0.88" stroke="#E2E8F0" stroke-width="2.5"/>
+  
+  <!-- Platter ring / radar gauge -->
+  <circle cx="60" cy="59" r="17" stroke="#38BDF8" stroke-width="3.5" stroke-dasharray="78 30" stroke-linecap="round"/>
+  <circle cx="60" cy="59" r="10" stroke="#10B981" stroke-width="2.5" stroke-dasharray="45 20" stroke-linecap="round"/>
+  <circle cx="60" cy="59" r="4" fill="#F8FAFC"/>
+  
+  <!-- Read/write actuator arm sweeping clean -->
+  <path d="M74 71 L64 62" stroke="#F43F5E" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="75" cy="72" r="3" fill="#F43F5E"/>
+
+  <!-- Bottom drive LED bar -->
+  <rect x="38" y="83" width="28" height="4" rx="2" fill="#38BDF8"/>
+  <circle cx="86" cy="85" r="2.5" fill="#10B981"/>
+
+  <!-- Sparkle / clean stars -->
+  <path d="M93 26 L95.5 32.5 L102 35 L95.5 37.5 L93 44 L90.5 37.5 L84 35 L90.5 32.5 Z" fill="url(#sparkGrad)"/>
+  <path d="M82 46 L83.2 49.3 L86.5 50.5 L83.2 51.7 L82 55 L80.8 51.7 L77.5 50.5 L80.8 49.3 Z" fill="#FEF08A"/>
+</svg>

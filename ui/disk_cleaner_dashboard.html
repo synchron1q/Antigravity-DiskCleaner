@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Antigravity Disk Cleaner — Интерактивный Дашборд</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-5">
+  <div class="max-w-6xl mx-auto space-y-5">
+
+    <!-- Header Banner -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-start gap-3.5">
+        <div class="w-12 h-12 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-2xl shrink-0">🧹</div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl font-bold text-[var(--foreground)]">Antigravity Disk Cleaner</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+              🛡️ Dry-Run + Корзина Windows
+            </span>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)] mt-1">
+            Сформирован: 08.11.2026 19:01:07 • Время анализа: 3.29 сек • Проверено файлов: 35029
+          </p>
+        </div>
+      </div>
+
+      <!-- Dynamic Selection Summary & Action Box -->
+      <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div>
+          <div class="text-xs text-[var(--muted-foreground)]">Выбрано к безопасной очистке:</div>
+          <div id="selected-total-size" class="text-lg font-bold text-emerald-500">0 Б</div>
+          <div id="selected-total-count" class="text-xs text-[var(--muted-foreground)]">0 категорий / файлов</div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="runAction('dry_run')" class="px-3 py-2 rounded-lg text-xs font-semibold bg-sky-500/15 text-sky-400 border border-sky-500/30 hover:bg-sky-500/25 transition">
+            🔍 Симуляция (Dry-Run)
+          </button>
+          <button onclick="runAction('recycle')" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition shadow-sm">
+            🗑️ В Корзину
+          </button>
+          <button onclick="runAction('permanent')" class="px-3 py-2 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 hover:bg-rose-500/25 transition">
+            ⚡ Удалить навсегда
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status / Dry-Run Output Drawer -->
+    <div id="action-drawer" class="hidden bg-[var(--card)] border border-sky-500/40 rounded-xl p-4 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <div id="drawer-title" class="text-sm font-semibold text-sky-400">Результат проверки</div>
+        <button onclick="document.getElementById('action-drawer').classList.add('hidden')" class="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕ Закрыть</button>
+      </div>
+      <div id="drawer-body" class="text-xs space-y-2"></div>
+    </div>
+
+    <!-- Drives Cards -->
+    <div id="drives-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex flex-wrap gap-2 border-b border-[var(--border)] pb-2">
+      <button onclick="switchTab('junk')" id="tab-btn-junk" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-sky-500 text-white transition">
+        🧹 Системный мусор и кэши (3.3 ГБ)
+      </button>
+      <button onclick="switchTab('dirs')" id="tab-btn-dirs" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)] transition">
+        📂 Тяжёлые папки и Гиганты
+      </button>
+      <button onclick="switchTab('downloads')" id="tab-btn-downloads" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)] transition">
+        📥 Загрузки Downloads (0 Б)
+      </button>
+      <button onclick="switchTab('duplicates')" id="tab-btn-duplicates" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)] transition">
+        👯 Дубликаты (143.0 МБ)
+      </button>
+    </div>
+
+    <!-- TAB 1: Junk Categories -->
+    <div id="tab-junk" class="space-y-3">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <p class="text-xs text-[var(--muted-foreground)]">
+          Отметьте галочками категории мусора для очистки. Все пункты с меткой <b>Безопасно</b> содержат только временный кэш (пароли, история и личные документы не затрагиваются).
+        </p>
+        <div class="flex gap-2">
+          <button onclick="selectJunk('safe')" class="px-2.5 py-1 rounded text-xs bg-[var(--card)] border border-[var(--border)] hover:border-emerald-500/50">Выбрать все безопасные</button>
+          <button onclick="selectJunk('none')" class="px-2.5 py-1 rounded text-xs bg-[var(--card)] border border-[var(--border)]">Снять выбор</button>
+        </div>
+      </div>
+      <div id="junk-list" class="space-y-2.5"></div>
+    </div>
+
+    <!-- TAB 2: Top Dirs & Large Files -->
+    <div id="tab-dirs" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-semibold">📂 Топ самых тяжёлых папок</h3>
+        <div id="top-dirs-list" class="space-y-2"></div>
+      </div>
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-semibold">🐘 Самые крупные файлы (&gt; 20 МБ)</h3>
+        <div id="large-files-list" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Old / Heavy Downloads -->
+    <div id="tab-downloads" class="hidden bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-semibold">📥 Старые и крупные файлы в папке «Загрузки» (Downloads)</h3>
+          <p class="text-xs text-[var(--muted-foreground)]">Отметьте ненужные установщики (.exe, .msi, .iso, .zip), чтобы включить их в очистку в Корзину.</p>
+        </div>
+      </div>
+      <div id="downloads-list" class="space-y-2"></div>
+    </div>
+
+    <!-- TAB 4: Duplicates -->
+    <div id="tab-duplicates" class="hidden bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h3 class="text-sm font-semibold">👯 Полные дубликаты файлов (проверено по SHA-256)</h3>
+          <p class="text-xs text-[var(--muted-foreground)]">Оригинал остаётся нетронутым, а лишние копии можно отметить галочкой для отправки в Корзину.</p>
+        </div>
+        <button onclick="selectAllDuplicates()" class="px-2.5 py-1 rounded text-xs bg-purple-500/15 text-purple-400 border border-purple-500/30">Отметить все лишние копии</button>
+      </div>
+      <div id="duplicates-list" class="space-y-3"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const DATA = {"generated_at": "08.11.2026 19:01:07", "scan_duration_sec": 3.29, "potential_savings_bytes": 3695753783, "potential_savings_human": "3.4 ГБ", "drives": [{"drive": "C:", "mount": "C:\\", "label": "sda", "filesystem": "NTFS", "total_bytes": 239132995584, "used_bytes": 201314598912, "free_bytes": 37818396672, "total_human": "222.7 ГБ", "used_human": "187.5 ГБ", "free_human": "35.2 ГБ", "used_pct": 84.2, "free_pct": 15.8, "status": "Warning"}, {"drive": "D:", "mount": "D:\\", "label": "Ventoy", "filesystem": "exFAT", "total_bytes": 640080805888, "used_bytes": 181669330944, "free_bytes": 458411474944, "total_human": "596.1 ГБ", "used_human": "169.2 ГБ", "free_human": "426.9 ГБ", "used_pct": 28.4, "free_pct": 71.6, "status": "OK"}, {"drive": "E:", "mount": "E:\\", "label": "VTOYEFI", "filesystem": "FAT", "total_bytes": 33277440, "used_bytes": 28770816, "free_bytes": 4506624, "total_human": "31.7 МБ", "used_human": "27.4 МБ", "free_human": "4.3 МБ", "used_pct": 86.5, "free_pct": 13.5, "status": "Warning"}, {"drive": "F:", "mount": "F:\\", "label": "sdb1", "filesystem": "NTFS", "total_bytes": 749365882880, "used_bytes": 672607531008, "free_bytes": 76758351872, "total_human": "697.9 ГБ", "used_human": "626.4 ГБ", "free_human": "71.5 ГБ", "used_pct": 89.8, "free_pct": 10.2, "status": "Warning"}, {"drive": "G:", "mount": "G:\\", "label": "Ventoy", "filesystem": "NTFS", "total_bytes": 162651635712, "used_bytes": 22666964992, "free_bytes": 139984670720, "total_human": "151.5 ГБ", "used_human": "21.1 ГБ", "free_human": "130.4 ГБ", "used_pct": 13.9, "free_pct": 86.1, "status": "OK"}, {"drive": "H:", "mount": "H:\\", "label": "sdb0", "filesystem": "NTFS", "total_bytes": 1000202039296, "used_bytes": 342613692416, "free_bytes": 657588346880, "total_human": "931.5 ГБ", "used_human": "319.1 ГБ", "free_human": "612.4 ГБ", "used_pct": 34.3, "free_pct": 65.7, "status": "OK"}, {"drive": "I:", "mount": "I:\\", "label": "Google Drive", "filesystem": "FAT32", "total_bytes": 239132995584, "used_bytes": 203205521408, "free_bytes": 35927474176, "total_human": "222.7 ГБ", "used_human": "189.2 ГБ", "free_human": "33.5 ГБ", "used_pct": 85.0, "free_pct": 15.0, "status": "Warning"}, {"drive": "W:", "mount": "W:\\", "label": "Data", "filesystem": "NTFS", "total_bytes": 837517570048, "used_bytes": 58510102528, "free_bytes": 779007467520, "total_human": "780.0 ГБ", "used_human": "54.5 ГБ", "free_human": "725.5 ГБ", "used_pct": 7.0, "free_pct": 93.0, "status": "OK"}], "junk": {"total_junk_bytes": 3545790346, "total_junk_human": "3.3 ГБ", "safe_junk_bytes": 3540632973, "safe_junk_human": "3.3 ГБ", "total_junk_files": 13423, "categories_count": 9, "items": [{"id": "chrome_cache", "name": "Кэш браузера Google Chrome", "category": "browser_cache", "category_label": "Кэши браузеров", "safety": "safe", "description": "Временный веб-кэш, GPUCache и Code Cache (пароли, история и сессии НЕ затрагиваются).", "paths": ["C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Code Cache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\GPUCache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1\\Cache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1\\Code Cache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1\\GPUCache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1\\Service Worker\\CacheStorage", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 2\\Cache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 2\\Code Cache", "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 2\\GPUCache"], "size_bytes": 2578154779, "size_human": "2.4 ГБ", "file_count": 11353, "samples": [{"name": "496dbcd2842fc747_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\496dbcd2842fc747_0", "size_bytes": 127758387, "size_human": "121.8 МБ"}, {"name": "2a19017ec2652e03_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\2a19017ec2652e03_0", "size_bytes": 101544443, "size_human": "96.8 МБ"}, {"name": "de8d724542c82fff_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\de8d724542c82fff_0", "size_bytes": 91408275, "size_human": "87.2 МБ"}, {"name": "8d1916c3cc8f36cb_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\8d1916c3cc8f36cb_0", "size_bytes": 78164723, "size_human": "74.5 МБ"}, {"name": "b2c425b1ec296eef_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\b2c425b1ec296eef_0", "size_bytes": 53391067, "size_human": "50.9 МБ"}]}, {"id": "win_update_cache", "name": "Кэш загрузок обновлений Windows (SoftwareDistribution)", "category": "system_temp", "category_label": "Системный мусор Windows", "safety": "safe", "description": "Скачанные пакеты уже установленных обновлений Windows.", "paths": ["C:\\Windows\\SoftwareDistribution\\Download"], "size_bytes": 812999391, "size_human": "775.3 МБ", "file_count": 191, "samples": [{"name": "Windows10.0-KB5126655-x64.cab", "path": "C:\\Windows\\SoftwareDistribution\\Download\\9cfc6ec2ba20c6c815ae4bf03dc7fd32\\Windows10.0-KB5126655-x64.cab", "size_bytes": 578327355, "size_human": "551.5 МБ"}, {"name": "Windows10.0-KB5127693-x64-NDP481.cab", "path": "C:\\Windows\\SoftwareDistribution\\Download\\4bd87a34ef0aa43c45daf7b57b4a102a\\Windows10.0-KB5127693-x64-NDP481.cab", "size_bytes": 96459166, "size_human": "92.0 МБ"}, {"name": "6c7e84f74dea1eefcb94e0552a2d62ba5382a4b9", "path": "C:\\Windows\\SoftwareDistribution\\Download\\6c7e84f74dea1eefcb94e0552a2d62ba5382a4b9", "size_bytes": 87720408, "size_human": "83.7 МБ"}, {"name": "SSU-20348.5739-x64.cab", "path": "C:\\Windows\\SoftwareDistribution\\Download\\9cfc6ec2ba20c6c815ae4bf03dc7fd32\\SSU-20348.5739-x64.cab", "size_bytes": 16976864, "size_human": "16.2 МБ"}, {"name": "73cb454d802ab36413f86f6dcda49846621fe8797f396c555eb8bb49f9daa19e", "path": "C:\\Windows\\SoftwareDistribution\\Download\\SharedFileCache\\73cb454d802ab36413f86f6dcda49846621fe8797f396c555eb8bb49f9daa19e", "size_bytes": 5016019, "size_human": "4.8 МБ"}]}, {"id": "edge_cache", "name": "Кэш браузера Microsoft Edge", "category": "browser_cache", "category_label": "Кэши браузеров", "safety": "safe", "description": "Временный веб-кэш Edge (пароли, вкладки и куки НЕ затрагиваются).", "paths": ["C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Cache", "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Code Cache", "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\GPUCache", "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Service Worker\\CacheStorage"], "size_bytes": 92475196, "size_human": "88.2 МБ", "file_count": 1805, "samples": [{"name": "3dcf4086ba30fdbd_1", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Service Worker\\CacheStorage\\3cedfb74d44f2e84198d23075aef16c34a668ceb\\8fc9b3d8-b669-4c39-8ea3-23b5d47f70dc\\3dcf4086ba30fdbd_1", "size_bytes": 4409496, "size_human": "4.2 МБ"}, {"name": "data_3", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\GPUCache\\data_3", "size_bytes": 4202496, "size_human": "4.0 МБ"}, {"name": "44733bfdd0b67dfe_0", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Code Cache\\js\\44733bfdd0b67dfe_0", "size_bytes": 2712336, "size_human": "2.6 МБ"}, {"name": "c6d410e4619be1ca_0", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Code Cache\\js\\c6d410e4619be1ca_0", "size_bytes": 2259944, "size_human": "2.2 МБ"}, {"name": "3dcf4086ba30fdbd_0", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Service Worker\\CacheStorage\\3cedfb74d44f2e84198d23075aef16c34a668ceb\\8fc9b3d8-b669-4c39-8ea3-23b5d47f70dc\\3dcf4086ba30fdbd_0", "size_bytes": 1844153, "size_human": "1.8 МБ"}]}, {"id": "thumb_cache", "name": "Кэш эскизов Проводника (Thumbnails)", "category": "system_temp", "category_label": "Системный мусор Windows", "safety": "safe", "description": "Базы предпросмотра картинок и видео (thumbcache_*.db).", "paths": ["C:\\Users\\fara\\AppData\\Local\\Microsoft\\Windows\\Explorer"], "size_bytes": 36933152, "size_human": "35.2 МБ", "file_count": 15, "samples": [{"name": "thumbcache_96.db", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_96.db", "size_bytes": 24117248, "size_human": "23.0 МБ"}, {"name": "thumbcache_768.db", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_768.db", "size_bytes": 6291456, "size_human": "6.0 МБ"}, {"name": "thumbcache_1280.db", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_1280.db", "size_bytes": 1048576, "size_human": "1.0 МБ"}, {"name": "thumbcache_16.db", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_16.db", "size_bytes": 1048576, "size_human": "1.0 МБ"}, {"name": "thumbcache_256.db", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_256.db", "size_bytes": 1048576, "size_human": "1.0 МБ"}]}, {"id": "user_temp", "name": "Временные файлы пользователя (%TEMP%)", "category": "system_temp", "category_label": "Системный мусор Windows", "safety": "safe", "description": "Временные файлы установщиков, распакованных архивов и запущенных программ.", "paths": ["C:\\Users\\fara\\AppData\\Local\\Temp", "C:\\Users\\fara\\AppData\\Local\\Temp\\3"], "size_bytes": 11100578, "size_human": "10.6 МБ", "file_count": 21, "samples": [{"name": "98e2899c-2da5-4dcb-a119-267e861cba18.tmp", "path": "C:\\Users\\fara\\AppData\\Local\\Temp\\3\\98e2899c-2da5-4dcb-a119-267e861cba18.tmp", "size_bytes": 5918032, "size_human": "5.6 МБ"}, {"name": "699df301-ed87-4765-bde7-2782c303007f.tmp", "path": "C:\\Users\\fara\\AppData\\Local\\Temp\\3\\699df301-ed87-4765-bde7-2782c303007f.tmp", "size_bytes": 2648665, "size_human": "2.5 МБ"}, {"name": "0f79c8f4-3512-45fb-a546-e4a75e44dc64.tmp", "path": "C:\\Users\\fara\\AppData\\Local\\Temp\\3\\0f79c8f4-3512-45fb-a546-e4a75e44dc64.tmp", "size_bytes": 1411087, "size_human": "1.3 МБ"}, {"name": "8316f381-d759-4392-a93d-984a14d4be35.tmp", "path": "C:\\Users\\fara\\AppData\\Local\\Temp\\3\\8316f381-d759-4392-a93d-984a14d4be35.tmp", "size_bytes": 526314, "size_human": "514.0 КБ"}, {"name": "49496220-eb3d-45f7-b81d-b7f76104a015.tmp", "path": "C:\\Users\\fara\\AppData\\Local\\Temp\\3\\49496220-eb3d-45f7-b81d-b7f76104a015.tmp", "size_bytes": 263195, "size_human": "257.0 КБ"}]}, {"id": "win_temp", "name": "Системные временные файлы (Windows\\Temp)", "category": "system_temp", "category_label": "Системный мусор Windows", "safety": "safe", "description": "Системная папка временных файлов служб Windows.", "paths": ["C:\\Windows\\Temp"], "size_bytes": 8405059, "size_human": "8.0 МБ", "file_count": 4, "samples": [{"name": "TmpFile1", "path": "C:\\Windows\\Temp\\TmpFile1", "size_bytes": 8405015, "size_human": "8.0 МБ"}, {"name": "tbTDlY9iZgyTloA8", "path": "C:\\Windows\\Temp\\tbTDlY9iZgyTloA8", "size_bytes": 44, "size_human": "44 Б"}, {"name": "FXSAPIDebugLogFile.txt", "path": "C:\\Windows\\Temp\\FXSAPIDebugLogFile.txt", "size_bytes": 0, "size_human": "0 Б"}, {"name": "FXSTIFFDebugLogFile.txt", "path": "C:\\Windows\\Temp\\FXSTIFFDebugLogFile.txt", "size_bytes": 0, "size_human": "0 Б"}]}, {"id": "scratch_logs", "name": "Разросшиеся лог-файлы в проектах (*.log)", "category": "logs_dumps", "category_label": "Логи и дампы", "safety": "review", "description": "Накопленные .log файлы в песочнице проектов Antigravity.", "paths": ["C:\\Users\\fara\\.gemini\\antigravity\\scratch\\server_guardian\\crash.log", "C:\\Users\\fara\\.gemini\\antigravity\\scratch\\server_guardian\\kibi.log"], "size_bytes": 5157373, "size_human": "4.9 МБ", "file_count": 2, "samples": [{"name": "kibi.log", "path": "C:\\Users\\fara\\.gemini\\antigravity\\scratch\\server_guardian\\kibi.log", "size_bytes": 5157363, "size_human": "4.9 МБ"}, {"name": "crash.log", "path": "C:\\Users\\fara\\.gemini\\antigravity\\scratch\\server_guardian\\crash.log", "size_bytes": 10, "size_human": "10 Б"}]}, {"id": "wer_reports", "name": "Отчёты об ошибках Windows (WER)", "category": "logs_dumps", "category_label": "Логи и дампы", "safety": "safe", "description": "Накопленные архивы и очереди диагностики Windows Error Reporting.", "paths": ["C:\\ProgramData\\Microsoft\\Windows\\WER"], "size_bytes": 298610, "size_human": "291.6 КБ", "file_count": 20, "samples": [{"name": "Report.wer", "path": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_connect.exe_e56d986f57fd6fb3d311d53c38a5e7b32d61c77_d88c2a8b_96d27fb8-41eb-4bd1-ad5c-34f289272110\\Report.wer", "size_bytes": 36376, "size_human": "35.5 КБ"}, {"name": "Report.wer", "path": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_connect.exe_e56d986f57fd6fb3d311d53c38a5e7b32d61c77_d88c2a8b_8e68ff83-dd8e-489e-8f26-d7f9b0562e0e\\Report.wer", "size_bytes": 35322, "size_human": "34.5 КБ"}, {"name": "Report.wer", "path": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_RvRvpnGui.exe_9f17729875651286aa9eba1bbe5e15e187e84f49_d5a2e38a_cbffdeeb-fb75-48f1-b00c-5c33fe885c0e\\Report.wer", "size_bytes": 24102, "size_human": "23.5 КБ"}, {"name": "Report.wer", "path": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_Microsoft.Window_d87db2163d60298ad7126c10d7ce4010ef41994b_a9631f66_827a9ab2-36c6-4c6f-9a0c-17e8a8986703\\Report.wer", "size_bytes": 23102, "size_human": "22.6 КБ"}, {"name": "Report.wer", "path": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_Microsoft.Window_39eb7409f23e0b11efc7edfaf7cbbd99cc9c32_c243b7f9_950a658f-60fd-4fb3-8c15-559d3daa9d3c\\Report.wer", "size_bytes": 21752, "size_human": "21.2 КБ"}]}, {"id": "crash_dumps", "name": "Дампы падений и ошибок (CrashDumps & Minidump)", "category": "logs_dumps", "category_label": "Логи и дампы", "safety": "safe", "description": "Тяжёлые дампы памяти (.dmp) после сбоев программ и системы.", "paths": ["C:\\Windows\\Minidump", "C:\\Users\\fara\\AppData\\Local\\D3DSCache"], "size_bytes": 266208, "size_human": "260.0 КБ", "file_count": 12, "samples": [{"name": "F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "path": "C:\\Users\\fara\\AppData\\Local\\D3DSCache\\fdedeeaf6837bccf\\F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "size_bytes": 65552, "size_human": "64.0 КБ"}, {"name": "F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "path": "C:\\Users\\fara\\AppData\\Local\\D3DSCache\\ecbf0d5a3a180bb\\F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "size_bytes": 65552, "size_human": "64.0 КБ"}, {"name": "F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "path": "C:\\Users\\fara\\AppData\\Local\\D3DSCache\\e8010882af4f153f\\F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "size_bytes": 65552, "size_human": "64.0 КБ"}, {"name": "F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "path": "C:\\Users\\fara\\AppData\\Local\\D3DSCache\\9b6845e530b979cc\\F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.idx", "size_bytes": 65552, "size_human": "64.0 КБ"}, {"name": "F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.val", "path": "C:\\Users\\fara\\AppData\\Local\\D3DSCache\\fdedeeaf6837bccf\\F4EB2D6C-ED2B-4BDD-AD9D-F913287E6768.val", "size_bytes": 1072, "size_human": "1.0 КБ"}]}]}, "analysis": {"scanned_files_count": 35029, "top_dirs": [{"name": "Documents (Документы)", "path": "C:\\Users\\fara\\Documents", "size_bytes": 16622793325, "size_human": "15.5 ГБ", "file_count": 480}, {"name": "AppData\\Local\\BeamNG", "path": "C:\\Users\\fara\\AppData\\Local\\BeamNG", "size_bytes": 3686298104, "size_human": "3.4 ГБ", "file_count": 359}, {"name": "AppData\\Local\\Google", "path": "C:\\Users\\fara\\AppData\\Local\\Google", "size_bytes": 2487743109, "size_human": "2.3 ГБ", "file_count": 8205}, {"name": "AppData\\Local\\JetBrains", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains", "size_bytes": 733798370, "size_human": "699.8 МБ", "file_count": 2475}, {"name": "AppData\\Local\\GitHubDesktop", "path": "C:\\Users\\fara\\AppData\\Local\\GitHubDesktop", "size_bytes": 678352812, "size_human": "646.9 МБ", "file_count": 1040}, {"name": "Desktop (Рабочий стол)", "path": "C:\\Users\\fara\\Desktop", "size_bytes": 498061304, "size_human": "475.0 МБ", "file_count": 2632}, {"name": "AppData\\Local\\AzureFunctionsTools", "path": "C:\\Users\\fara\\AppData\\Local\\AzureFunctionsTools", "size_bytes": 480842626, "size_human": "458.6 МБ", "file_count": 1648}, {"name": "AppData\\Local\\Postman", "path": "C:\\Users\\fara\\AppData\\Local\\Postman", "size_bytes": 449962163, "size_human": "429.1 МБ", "file_count": 95}, {"name": "AppData\\Local\\NuGet", "path": "C:\\Users\\fara\\AppData\\Local\\NuGet", "size_bytes": 287100453, "size_human": "273.8 МБ", "file_count": 336}, {"name": "Pictures (Изображения)", "path": "C:\\Users\\fara\\Pictures", "size_bytes": 170641950, "size_human": "162.7 МБ", "file_count": 6}, {"name": "AppData\\Local\\Autodesk", "path": "C:\\Users\\fara\\AppData\\Local\\Autodesk", "size_bytes": 158271197, "size_human": "150.9 МБ", "file_count": 432}, {"name": "AppData\\Local\\Programs", "path": "C:\\Users\\fara\\AppData\\Local\\Programs", "size_bytes": 132038743, "size_human": "125.9 МБ", "file_count": 6097}, {"name": ".gemini (Antigravity & AI)", "path": "C:\\Users\\fara\\.gemini", "size_bytes": 109399785, "size_human": "104.3 МБ", "file_count": 6001}, {"name": "AppData\\Local\\rustdesk", "path": "C:\\Users\\fara\\AppData\\Local\\rustdesk", "size_bytes": 82707064, "size_human": "78.9 МБ", "file_count": 106}, {"name": "AppData\\Local\\1C", "path": "C:\\Users\\fara\\AppData\\Local\\1C", "size_bytes": 76767326, "size_human": "73.2 МБ", "file_count": 20}], "large_files": [{"name": "vWeb-01.vdi", "path": "C:\\Users\\fara\\Documents\\VirtualBox VMs\\vWeb-01\\vWeb-01.vdi", "ext": ".vdi", "size_bytes": 14495514624, "size_human": "13.5 ГБ", "modified": "2026-11-04 19:27", "age_days": 3}, {"name": "{6ae4c89c-ccd1-4869-b0da-1b17287fc005}.vdi", "path": "C:\\Users\\fara\\Documents\\VirtualBox VMs\\vWeb-01\\Snapshots\\{6ae4c89c-ccd1-4869-b0da-1b17287fc005}.vdi", "ext": ".vdi", "size_bytes": 1807745024, "size_human": "1.7 ГБ", "modified": "2026-11-08 18:47", "age_days": 0}, {"name": "Gemini.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Gemini\\app-1.18.0\\Gemini.exe", "ext": ".exe", "size_bytes": 246783128, "size_human": "235.4 МБ", "modified": "2026-10-28 04:13", "age_days": 11}, {"name": "Antigravity.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Programs\\antigravity\\Antigravity.exe", "ext": ".exe", "size_bytes": 245737472, "size_human": "234.4 МБ", "modified": "2026-11-03 20:36", "age_days": 4}, {"name": "Code.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "ext": ".exe", "size_bytes": 238751544, "size_human": "227.7 МБ", "modified": "2026-11-06 06:15", "age_days": 2}, {"name": "Antigravity IDE.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Programs\\Antigravity IDE\\Antigravity IDE.exe", "ext": ".exe", "size_bytes": 210848768, "size_human": "201.1 МБ", "modified": "2026-08-13 09:25", "age_days": 87}, {"name": "Postman.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Postman\\app-12.21.2\\Postman.exe", "ext": ".exe", "size_bytes": 206389880, "size_human": "196.8 МБ", "modified": "2026-07-29 12:09", "age_days": 102}, {"name": "language_server.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Programs\\antigravity\\resources\\bin\\language_server.exe", "ext": ".exe", "size_bytes": 187342336, "size_human": "178.7 МБ", "modified": "2026-11-03 20:36", "age_days": 4}, {"name": "eduX.exe", "path": "C:\\Users\\fara\\Pictures\\eduX.exe", "ext": ".exe", "size_bytes": 163986305, "size_human": "156.4 МБ", "modified": "2026-02-17 12:24", "age_days": 264}, {"name": "app.asar", "path": "C:\\Users\\fara\\AppData\\Local\\Postman\\app-12.21.2\\resources\\app.asar", "ext": ".asar", "size_bytes": 145903598, "size_human": "139.1 МБ", "modified": "2026-07-29 12:09", "age_days": 102}, {"name": "language_server_windows_x64.exe", "path": "C:\\Users\\fara\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe", "ext": ".exe", "size_bytes": 135647744, "size_human": "129.4 МБ", "modified": "2026-08-13 09:25", "age_days": 87}, {"name": "496dbcd2842fc747_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\496dbcd2842fc747_0", "ext": "file", "size_bytes": 127758387, "size_human": "121.8 МБ", "modified": "2026-08-18 14:37", "age_days": 82}, {"name": "runtime.node", "path": "C:\\Users\\fara\\AppData\\Local\\Programs\\Microsoft VS Code\\c4453f8ea4\\resources\\app\\node_modules.asar.unpacked\\@github\\copilot-sdk-win32-x64\\prebuilds\\win32-x64\\runtime.node", "ext": ".node", "size_bytes": 125545792, "size_human": "119.7 МБ", "modified": "2026-11-06 06:16", "age_days": 2}, {"name": "2a19017ec2652e03_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\2a19017ec2652e03_0", "ext": "file", "size_bytes": 101544443, "size_human": "96.8 МБ", "modified": "2026-08-18 14:30", "age_days": 82}, {"name": "курсач.zip", "path": "C:\\Users\\fara\\Documents\\курсач.zip", "ext": ".zip", "size_bytes": 93797058, "size_human": "89.5 МБ", "modified": "2026-02-22 22:31", "age_days": 258}, {"name": "jetbrainsd.exe", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains\\Daemon\\bundles\\current\\jetbrainsd\\bin\\jetbrainsd.exe", "ext": ".exe", "size_bytes": 93059432, "size_human": "88.7 МБ", "modified": "2026-09-29 16:06", "age_days": 40}, {"name": "de8d724542c82fff_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\de8d724542c82fff_0", "ext": "file", "size_bytes": 91408275, "size_human": "87.2 МБ", "modified": "2026-08-18 14:37", "age_days": 82}, {"name": "8d1916c3cc8f36cb_0", "path": "C:\\Users\\fara\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage\\c6dfe3e8500dde6ae0ad4e61d72e83a3cfb12527\\1659cac5-0762-415e-8cbf-ec100740b235\\8d1916c3cc8f36cb_0", "ext": "file", "size_bytes": 78164723, "size_human": "74.5 МБ", "modified": "2026-08-18 15:32", "age_days": 82}, {"name": "composeModelQuantized.onnx", "path": "C:\\Users\\fara\\AppData\\Local\\Microsoft\\VisualStudio\\18.0_b70f9d9c\\IntelliCodeModels\\all_line-completion2_ExtractedData\\composeModelQuantized.onnx", "ext": ".onnx", "size_bytes": 77468127, "size_human": "73.9 МБ", "modified": "2021-09-03 16:10", "age_days": 1892}, {"name": "python-ce.zip", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains\\IntelliJIdea2026.2\\plugins\\python-ce.zip", "ext": ".zip", "size_bytes": 76346637, "size_human": "72.8 МБ", "modified": "2026-09-29 16:07", "age_days": 40}, {"name": "flcc.model", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains\\IntelliJIdea2026.2\\full-line\\models\\0905e9b0-0606-368a-b34d-122e77024c3a\\flcc.model", "ext": ".model", "size_bytes": 68636608, "size_human": "65.5 МБ", "modified": "2026-09-29 16:09", "age_days": 40}, {"name": "write-ahead-log.wal", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains\\IntelliJIdea2026.2\\index\\write-ahead-log.wal", "ext": ".wal", "size_bytes": 67108864, "size_human": "64.0 МБ", "modified": "2026-09-29 16:06", "age_days": 40}, {"name": "content.dat", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains\\IntelliJIdea2026.2\\caches\\content.dat", "ext": ".dat", "size_bytes": 67108864, "size_human": "64.0 МБ", "modified": "2026-09-29 16:06", "age_days": 40}, {"name": "records.dat", "path": "C:\\Users\\fara\\AppData\\Local\\JetBrains\\IntelliJIdea2026.2\\caches\\records.dat", "ext": ".dat", "size_bytes": 67108864, "size_human": "64.0 МБ", "modified": "2026-09-29 16:06", "age_days": 40}, {"name": "EduX.msi", "path": "C:\\Users\\fara\\Documents\\курсач\\EduX\\EduX.msi", "ext": ".msi", "size_bytes": 66977792, "size_human": "63.9 МБ", "modified": "2026-02-17 12:31", "age_days": 264}], "old_downloads": {"total_bytes": 0, "total_human": "0 Б", "count": 0, "items": []}, "duplicates": {"total_wasted_bytes": 149963437, "total_wasted_human": "143.0 МБ", "groups_count": 20, "groups": [{"name": "PresentationFramework.dll", "hash_short": "2da887650153", "file_size_bytes": 16128272, "file_size_human": "15.4 МБ", "count": 2, "wasted_bytes": 16128272, "wasted_human": "15.4 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\PresentationFramework.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\PresentationFramework.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\PresentationFramework.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\PresentationFramework.dll"]}, {"name": "System.Windows.Forms.dll", "hash_short": "1f1936fd5f4f", "file_size_bytes": 13564176, "file_size_human": "12.9 МБ", "count": 2, "wasted_bytes": 13564176, "wasted_human": "12.9 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Windows.Forms.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Windows.Forms.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Windows.Forms.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Windows.Forms.dll"]}, {"name": "System.Private.CoreLib.dll", "hash_short": "d6e86784583f", "file_size_bytes": 13175096, "file_size_human": "12.6 МБ", "count": 2, "wasted_bytes": 13175096, "wasted_human": "12.6 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Private.CoreLib.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Private.CoreLib.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Private.CoreLib.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Private.CoreLib.dll"]}, {"name": "PresentationCore.dll", "hash_short": "3e0ca00ec2d0", "file_size_bytes": 8542472, "file_size_human": "8.1 МБ", "count": 2, "wasted_bytes": 8542472, "wasted_human": "8.1 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\PresentationCore.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\PresentationCore.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\PresentationCore.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\PresentationCore.dll"]}, {"name": "System.Private.Xml.dll", "hash_short": "68b4dc365722", "file_size_bytes": 7997704, "file_size_human": "7.6 МБ", "count": 2, "wasted_bytes": 7997704, "wasted_human": "7.6 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Private.Xml.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Private.Xml.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Private.Xml.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Private.Xml.dll"]}, {"name": "System.Windows.Forms.Design.dll", "hash_short": "bca45a5d99be", "file_size_bytes": 5564720, "file_size_human": "5.3 МБ", "count": 2, "wasted_bytes": 5564720, "wasted_human": "5.3 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Windows.Forms.Design.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Windows.Forms.Design.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Windows.Forms.Design.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Windows.Forms.Design.dll"]}, {"name": "coreclr.dll", "hash_short": "8ac5f9e33cf5", "file_size_bytes": 4995344, "file_size_human": "4.8 МБ", "count": 2, "wasted_bytes": 4995344, "wasted_human": "4.8 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\coreclr.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\coreclr.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\coreclr.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\coreclr.dll"]}, {"name": "D3DCompiler_47_cor3.dll", "hash_short": "3be453cd5a40", "file_size_bytes": 4916840, "file_size_human": "4.7 МБ", "count": 2, "wasted_bytes": 4916840, "wasted_human": "4.7 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\D3DCompiler_47_cor3.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\D3DCompiler_47_cor3.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\D3DCompiler_47_cor3.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\D3DCompiler_47_cor3.dll"]}, {"name": "mscordaccore.dll", "hash_short": "7bf3c8d81b33", "file_size_bytes": 1346392, "file_size_human": "1.3 МБ", "count": 4, "wasted_bytes": 4039176, "wasted_human": "3.9 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\mscordaccore.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\mscordaccore_amd64_amd64_8.0.2426.7010.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\mscordaccore.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\mscordaccore_amd64_amd64_8.0.2426.7010.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\mscordaccore.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\mscordaccore_amd64_amd64_8.0.2426.7010.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\mscordaccore.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\mscordaccore_amd64_amd64_8.0.2426.7010.dll"]}, {"name": "System.Linq.Expressions.dll", "hash_short": "123799e1863f", "file_size_bytes": 3676432, "file_size_human": "3.5 МБ", "count": 2, "wasted_bytes": 3676432, "wasted_human": "3.5 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Linq.Expressions.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Linq.Expressions.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Linq.Expressions.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Linq.Expressions.dll"]}, {"name": "e_sqlite3.dll", "hash_short": "2ba3bce3f70c", "file_size_bytes": 1691648, "file_size_human": "1.6 МБ", "count": 3, "wasted_bytes": 3383296, "wasted_human": "3.2 МБ", "original": "C:\\Users\\fara\\Documents\\курсач\\EduX\\publish\\e_sqlite3.dll", "duplicates": ["C:\\Users\\fara\\Documents\\курсач\\EduX\\bin\\Release\\net8.0-windows\\win-x64\\e_sqlite3.dll", "C:\\Users\\fara\\Documents\\курсач\\EduX\\bin\\Debug\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"], "all_paths": ["C:\\Users\\fara\\Documents\\курсач\\EduX\\publish\\e_sqlite3.dll", "C:\\Users\\fara\\Documents\\курсач\\EduX\\bin\\Release\\net8.0-windows\\win-x64\\e_sqlite3.dll", "C:\\Users\\fara\\Documents\\курсач\\EduX\\bin\\Debug\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"]}, {"name": "logo.png", "hash_short": "d2e9503cb15b", "file_size_bytes": 631522, "file_size_human": "616.7 КБ", "count": 6, "wasted_bytes": 3157610, "wasted_human": "3.0 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib\\assets\\images\\logo.png", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Debug\\net8.0-windows\\logo.png", "C:\\Users\\fara\\Documents\\Lightshot\\Screenshot_1.png"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib\\assets\\images\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\logo.png", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Debug\\net8.0-windows\\logo.png", "C:\\Users\\fara\\Documents\\Lightshot\\Screenshot_1.png"]}, {"name": "System.Text.Json.dll", "hash_short": "358ee97fc9df", "file_size_bytes": 778064, "file_size_human": "759.8 КБ", "count": 5, "wasted_bytes": 3112256, "wasted_human": "3.0 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Domain\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Data\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.ControllerManagement\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Configuration\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Caching\\bin\\x64\\Debug\\net48\\System.Text.Json.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Domain\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Data\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.ControllerManagement\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Configuration\\bin\\x64\\Debug\\net48\\System.Text.Json.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\SkudCore\\src\\Skud.Caching\\bin\\x64\\Debug\\net48\\System.Text.Json.dll"]}, {"name": "System.Windows.Forms.Primitives.dll", "hash_short": "3b2f4ae60edf", "file_size_bytes": 3012912, "file_size_human": "2.9 МБ", "count": 2, "wasted_bytes": 3012912, "wasted_human": "2.9 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Windows.Forms.Primitives.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Windows.Forms.Primitives.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Windows.Forms.Primitives.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Windows.Forms.Primitives.dll"]}, {"name": "System.Data.Common.dll", "hash_short": "bbf10aab4871", "file_size_bytes": 2861360, "file_size_human": "2.7 МБ", "count": 2, "wasted_bytes": 2861360, "wasted_human": "2.7 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Data.Common.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Data.Common.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Data.Common.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Data.Common.dll"]}, {"name": "WindowsBase.dll", "hash_short": "2f452968822f", "file_size_bytes": 2255152, "file_size_human": "2.2 МБ", "count": 2, "wasted_bytes": 2255152, "wasted_human": "2.2 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\WindowsBase.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\WindowsBase.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\WindowsBase.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\WindowsBase.dll"]}, {"name": "Microsoft.DiaSymReader.Native.amd64.dll", "hash_short": "e78bec2b1f00", "file_size_bytes": 2195504, "file_size_human": "2.1 МБ", "count": 2, "wasted_bytes": 2195504, "wasted_human": "2.1 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\Microsoft.DiaSymReader.Native.amd64.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\Microsoft.DiaSymReader.Native.amd64.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\Microsoft.DiaSymReader.Native.amd64.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\Microsoft.DiaSymReader.Native.amd64.dll"]}, {"name": "System.Private.DataContractSerialization.dll", "hash_short": "78f79185d8a0", "file_size_bytes": 2083128, "file_size_human": "2.0 МБ", "count": 2, "wasted_bytes": 2083128, "wasted_human": "2.0 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Private.DataContractSerialization.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Private.DataContractSerialization.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Private.DataContractSerialization.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Private.DataContractSerialization.dll"]}, {"name": "System.Security.Cryptography.dll", "hash_short": "c81803b151d0", "file_size_bytes": 2050320, "file_size_human": "2.0 МБ", "count": 2, "wasted_bytes": 2050320, "wasted_human": "2.0 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Security.Cryptography.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Security.Cryptography.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\System.Security.Cryptography.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\System.Security.Cryptography.dll"]}, {"name": "wpfgfx_cor3.dll", "hash_short": "1f6cec1cc688", "file_size_bytes": 1951536, "file_size_human": "1.9 МБ", "count": 2, "wasted_bytes": 1951536, "wasted_human": "1.9 МБ", "original": "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\wpfgfx_cor3.dll", "duplicates": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\wpfgfx_cor3.dll"], "all_paths": ["C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\publish\\wpfgfx_cor3.dll", "C:\\Users\\fara\\Desktop\\Проекты и Код\\smartlib.cs\\bin\\Release\\net8.0-windows\\win-x64\\wpfgfx_cor3.dll"]}]}}};
+    const LIVE_API = false;
+
+    const selectedJunkIds = new Set(DATA.junk.items.filter(i => i.safety === 'safe').map(i => i.id));
+    const selectedCustomPaths = new Map(); // path -> size_bytes
+
+    function formatBytes(bytes) {
+      let val = Math.max(0, Number(bytes) || 0);
+      const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
+      let idx = 0;
+      while (val >= 1024 && idx < units.length - 1) {
+        val /= 1024;
+        idx++;
+      }
+      return idx === 0 ? `${Math.round(val)} ${units[idx]}` : `${val.toFixed(1)} ${units[idx]}`;
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = str ?? '';
+      return d.innerHTML;
+    }
+
+    function renderDrives() {
+      const grid = document.getElementById('drives-grid');
+      grid.innerHTML = '';
+      DATA.drives.forEach(d => {
+        const color = d.status === 'Critical' ? 'bg-rose-500' : (d.status === 'Warning' ? 'bg-amber-500' : 'bg-sky-500');
+        const badge = d.status === 'Critical'
+          ? '<span class="px-2 py-0.5 rounded text-xs bg-rose-500/15 text-rose-500 font-semibold">Критично</span>'
+          : (d.status === 'Warning'
+            ? '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/15 text-amber-500 font-semibold">Внимание</span>'
+            : '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/15 text-emerald-500 font-semibold">Норма</span>');
+
+        grid.innerHTML += `
+          <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-base font-bold">💾 ${esc(d.drive)} ${esc(d.label)}</span>
+                <span class="text-xs text-[var(--muted-foreground)]">(${esc(d.filesystem)})</span>
+              </div>
+              ${badge}
+            </div>
+            <div class="w-full h-3 rounded-full bg-[var(--background)] border border-[var(--border)] overflow-hidden">
+              <div class="h-full ${color} transition-all" style="width: ${d.used_pct}%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-[var(--muted-foreground)]">
+              <span>Занято: <b class="text-[var(--foreground)]">${esc(d.used_human)}</b> (${d.used_pct}%)</span>
+              <span>Свободно: <b class="text-emerald-500">${esc(d.free_human)}</b> из ${esc(d.total_human)}</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderJunk() {
+      const list = document.getElementById('junk-list');
+      list.innerHTML = '';
+      DATA.junk.items.forEach(item => {
+        const checked = selectedJunkIds.has(item.id) ? 'checked' : '';
+        const safetyBadge = item.safety === 'safe'
+          ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/15 text-emerald-500 font-medium">Безопасно</span>'
+          : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/15 text-amber-500 font-medium">Проверить</span>';
+
+        const samplesHtml = (item.samples || []).map(s =>
+          `<span class="inline-block px-2 py-0.5 rounded bg-[var(--background)] border border-[var(--border)] text-xs text-[var(--muted-foreground)]">${esc(s.name)} (${esc(s.size_human)})</span>`
+        ).join(' ');
+
+        list.innerHTML += `
+          <label class="block bg-[var(--card)] border border-[var(--border)] hover:border-sky-500/40 rounded-xl p-3.5 cursor-pointer transition">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <input type="checkbox" class="mt-1 w-4 h-4 accent-emerald-500" ${checked} onchange="toggleJunk('${item.id}', this.checked)">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-semibold">${esc(item.name)}</span>
+                    <span class="px-2 py-0.5 rounded text-xs bg-sky-500/15 text-sky-400">${esc(item.category_label)}</span>
+                    ${safetyBadge}
+                  </div>
+                  <p class="text-xs text-[var(--muted-foreground)]">${esc(item.description)}</p>
+                  <div class="text-xs text-[var(--muted-foreground)] font-mono truncate max-w-2xl">${esc((item.paths || []).join(' • '))}</div>
+                  ${samplesHtml ? `<div class="flex flex-wrap gap-1.5 pt-1">${samplesHtml}</div>` : ''}
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-sm font-bold text-[var(--foreground)]">${esc(item.size_human)}</div>
+                <div class="text-xs text-[var(--muted-foreground)]">${item.file_count} объектов</div>
+              </div>
+            </div>
+          </label>
+        `;
+      });
+    }
+
+    function renderDirsAndLarge() {
+      const dirsList = document.getElementById('top-dirs-list');
+      const maxDir = Math.max(1, ...(DATA.analysis.top_dirs || []).map(d => d.size_bytes));
+      dirsList.innerHTML = (DATA.analysis.top_dirs || []).map(d => {
+        const pct = Math.max(4, Math.round((d.size_bytes / maxDir) * 100));
+        return `
+          <div class="p-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="font-semibold truncate">${esc(d.name)}</span>
+              <span class="font-bold whitespace-nowrap ml-2">${esc(d.size_human)}</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
+              <div class="h-full bg-indigo-500" style="width: ${pct}%"></div>
+            </div>
+            <div class="text-xs text-[var(--muted-foreground)] font-mono truncate">${esc(d.path)}</div>
+          </div>
+        `;
+      }).join('') || '<p class="text-xs text-[var(--muted-foreground)]">Нет данных</p>';
+
+      const filesList = document.getElementById('large-files-list');
+      filesList.innerHTML = (DATA.analysis.large_files || []).map((f, idx) => {
+        const checked = selectedCustomPaths.has(f.path) ? 'checked' : '';
+        return `
+          <label class="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] cursor-pointer hover:border-sky-500/40">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <input type="checkbox" class="w-4 h-4 accent-emerald-500 shrink-0" ${checked} data-path="${esc(f.path)}" data-size="${f.size_bytes}" onchange="toggleCustomPath(this)">
+              <div class="min-w-0">
+                <div class="text-xs font-semibold truncate">${esc(f.name)}</div>
+                <div class="text-xs text-[var(--muted-foreground)] font-mono truncate">${esc(f.path)}</div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-bold text-amber-500">${esc(f.size_human)}</div>
+              <div class="text-xs text-[var(--muted-foreground)]">${f.age_days} дн. назад</div>
+            </div>
+          </label>
+        `;
+      }).join('') || '<p class="text-xs text-[var(--muted-foreground)]">Крупных файлов не найдено</p>';
+    }
+
+    function renderDownloads() {
+      const dlList = document.getElementById('downloads-list');
+      const items = DATA.analysis.old_downloads?.items || [];
+      dlList.innerHTML = items.map(f => {
+        const checked = selectedCustomPaths.has(f.path) ? 'checked' : '';
+        return `
+          <label class="flex items-center justify-between gap-3 p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] cursor-pointer hover:border-sky-500/40">
+            <div class="flex items-center gap-3 min-w-0">
+              <input type="checkbox" class="w-4 h-4 accent-emerald-500 shrink-0" ${checked} data-path="${esc(f.path)}" data-size="${f.size_bytes}" onchange="toggleCustomPath(this)">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold truncate">${esc(f.name)}</span>
+                  <span class="px-2 py-0.5 rounded text-xs bg-sky-500/15 text-sky-400">${esc(f.reason)}</span>
+                </div>
+                <div class="text-xs text-[var(--muted-foreground)] font-mono truncate">${esc(f.path)}</div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-bold">${esc(f.size_human)}</div>
+              <div class="text-xs text-[var(--muted-foreground)]">${esc(f.modified)}</div>
+            </div>
+          </label>
+        `;
+      }).join('') || '<p class="text-xs text-[var(--muted-foreground)]">Старых или тяжёлых загрузок не обнаружено</p>';
+    }
+
+    function renderDuplicates() {
+      const dupList = document.getElementById('duplicates-list');
+      const groups = DATA.analysis.duplicates?.groups || [];
+      dupList.innerHTML = groups.map(g => {
+        const copiesHtml = g.duplicates.map(dp => {
+          const checked = selectedCustomPaths.has(dp) ? 'checked' : '';
+          return `
+            <label class="flex items-center justify-between gap-2 p-2 rounded bg-[var(--card)] border border-[var(--border)] cursor-pointer">
+              <div class="flex items-center gap-2 min-w-0">
+                <input type="checkbox" class="w-4 h-4 accent-purple-500 shrink-0 dup-checkbox" ${checked} data-path="${esc(dp)}" data-size="${g.file_size_bytes}" onchange="toggleCustomPath(this)">
+                <span class="px-1.5 py-0.5 rounded text-xs bg-purple-500/15 text-purple-400">Копия</span>
+                <span class="text-xs font-mono truncate">${esc(dp)}</span>
+              </div>
+              <span class="text-xs font-semibold shrink-0">${esc(g.file_size_human)}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="p-3.5 rounded-xl bg-[var(--background)] border border-[var(--border)] space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold">${esc(g.name)}</span>
+                <span class="text-xs text-[var(--muted-foreground)]">SHA-256: ${esc(g.hash_short)}… (${g.count} экз.)</span>
+              </div>
+              <span class="text-xs font-bold text-purple-400">Лишний вес: ${esc(g.wasted_human)}</span>
+            </div>
+            <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-xs flex items-center gap-2">
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium">Оригинал (сохраняется)</span>
+              <span class="font-mono truncate">${esc(g.original)}</span>
+            </div>
+            <div class="space-y-1.5">${copiesHtml}</div>
+          </div>
+        `;
+      }).join('') || '<p class="text-xs text-[var(--muted-foreground)]">Полных дубликатов не найдено</p>';
+    }
+
+    function updateTotals() {
+      let bytes = 0;
+      let count = 0;
+      DATA.junk.items.forEach(item => {
+        if (selectedJunkIds.has(item.id)) {
+          bytes += item.size_bytes;
+          count++;
+        }
+      });
+      for (const sz of selectedCustomPaths.values()) {
+        bytes += sz;
+        count++;
+      }
+      document.getElementById('selected-total-size').textContent = formatBytes(bytes);
+      document.getElementById('selected-total-count').textContent = `${selectedJunkIds.size} категорий + ${selectedCustomPaths.size} отдельных файлов`;
+    }
+
+    function toggleJunk(id, isChecked) {
+      if (isChecked) selectedJunkIds.add(id);
+      else selectedJunkIds.delete(id);
+      updateTotals();
+    }
+
+    function selectJunk(mode) {
+      selectedJunkIds.clear();
+      if (mode === 'safe') {
+        DATA.junk.items.filter(i => i.safety === 'safe').forEach(i => selectedJunkIds.add(i.id));
+      }
+      renderJunk();
+      updateTotals();
+    }
+
+    function toggleCustomPath(el) {
+      const p = el.getAttribute('data-path');
+      const sz = Number(el.getAttribute('data-size') || 0);
+      if (el.checked) selectedCustomPaths.set(p, sz);
+      else selectedCustomPaths.delete(p);
+      updateTotals();
+    }
+
+    function selectAllDuplicates() {
+      (DATA.analysis.duplicates?.groups || []).forEach(g => {
+        g.duplicates.forEach(dp => selectedCustomPaths.set(dp, g.file_size_bytes));
+      });
+      renderDuplicates();
+      updateTotals();
+    }
+
+    function switchTab(tab) {
+      ['junk', 'dirs', 'downloads', 'duplicates'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        const btn = document.getElementById('tab-btn-' + t);
+        if (t === tab) {
+          el.classList.remove('hidden');
+          btn.className = 'px-3.5 py-2 rounded-lg text-xs font-semibold bg-sky-500 text-white transition';
+        } else {
+          el.classList.add('hidden');
+          btn.className = 'px-3.5 py-2 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)] transition';
+        }
+      });
+    }
+
+    async function runAction(actionType) {
+      const drawer = document.getElementById('action-drawer');
+      const title = document.getElementById('drawer-title');
+      const body = document.getElementById('drawer-body');
+      drawer.classList.remove('hidden');
+
+      const ids = Array.from(selectedJunkIds);
+      const paths = Array.from(selectedCustomPaths.keys());
+
+      if (ids.length === 0 && paths.length === 0) {
+        title.textContent = 'Ничего не выбрано';
+        body.innerHTML = '<p>Отметьте хотя бы одну категорию мусора или файл галочкой.</p>';
+        return;
+      }
+
+      if (LIVE_API) {
+        title.textContent = '⏳ Выполняется операция...';
+        body.innerHTML = '<p>Пожалуйста, подождите...</p>';
+        try {
+          const resp = await fetch('/api/clean', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target_ids: ids,
+              custom_paths: paths,
+              dry_run: actionType === 'dry_run',
+              mode: actionType === 'permanent' ? 'permanent' : 'recycle'
+            })
+          });
+          const res = await resp.json();
+          title.textContent = actionType === 'dry_run' ? '🔍 Результат Dry-Run превью' : '✅ Очистка выполнена';
+          body.innerHTML = `<div class="font-semibold">${esc(res.summary)}</div>`;
+        } catch (e) {
+          title.textContent = 'Ошибка соединения';
+          body.innerHTML = `<p>${esc(String(e))}</p>`;
+        }
+        return;
+      }
+
+      // Static artifact mode: show simulated Dry-Run breakdown + one-click command/prompt for Antigravity
+      let totalBytes = 0;
+      const chosenNames = [];
+      DATA.junk.items.forEach(i => {
+        if (selectedJunkIds.has(i.id)) {
+          totalBytes += i.size_bytes;
+          chosenNames.push(`${i.name} (${i.size_human})`);
+        }
+      });
+      for (const [p, sz] of selectedCustomPaths.entries()) {
+        totalBytes += sz;
+        chosenNames.push(`${p.split(/[\\/]/).pop()} (${formatBytes(sz)})`);
+      }
+
+      const modeFlag = actionType === 'dry_run'
+        ? '--dry-run'
+        : (actionType === 'permanent' ? '--execute --mode permanent' : '--execute --mode recycle');
+
+      const idsArg = ids.length ? `--clean-ids ${ids.join(',')}` : '';
+      const chatPrompt = actionType === 'dry_run'
+        ? `Запусти Dry-Run проверку очистки для категорий: ${ids.join(', ')}`
+        : `Очисти выбранные категории (${ids.join(', ')}) в режиме ${actionType === 'permanent' ? 'полного удаления' : 'отправки в Корзину'}`;
+
+      title.textContent = actionType === 'dry_run'
+        ? `🔍 Симуляция Dry-Run: будет освобождено ~${formatBytes(totalBytes)}`
+        : `🛡️ Готово к выполнению (${actionType === 'permanent' ? 'Полное удаление' : 'В Корзину Windows'}) — ~${formatBytes(totalBytes)}`;
+
+      body.innerHTML = `
+        <p class="text-[var(--muted-foreground)]">Выбранные элементы (${chosenNames.length}): <b>${esc(chosenNames.slice(0, 8).join(', '))}${chosenNames.length > 8 ? '…' : ''}</b></p>
+        <div class="p-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] flex items-center justify-between gap-2">
+          <code class="text-xs text-emerald-400 break-all">Напишите в чат Antigravity: «${esc(chatPrompt)}»</code>
+          <button onclick="navigator.clipboard.writeText('${esc(chatPrompt)}'); this.textContent='Скопировано!'" class="px-2.5 py-1 rounded bg-sky-500 text-white text-xs font-semibold shrink-0">Скопировать для чата</button>
+        </div>
+      `;
+    }
+
+    renderDrives();
+    renderJunk();
+    renderDirsAndLarge();
+    renderDownloads();
+    renderDuplicates();
+    updateTotals();
+  </script>
+</body>
+</html>

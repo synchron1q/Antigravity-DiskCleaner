@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-2">
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+    <!-- Header -->
+    <div class="flex items-center justify-between gap-3 border-b border-[var(--border)] pb-3 mb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl">🎉</div>
+        <div>
+          <h2 class="text-[var(--foreground)] font-bold text-base leading-tight">Antigravity Disk Cleaner • Диск C:</h2>
+          <p class="text-[var(--muted-foreground)] text-xs mt-0.5">
+            Уже освобождено: <span class="text-emerald-500 font-bold">+19.1 ГБ</span> • Доступно: <span class="text-sky-400 font-semibold">41.8 ГБ</span>
+          </p>
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+          ✓ Безопасная очистка
+        </span>
+      </div>
+    </div>
+
+    <!-- Drive C: Progress Bar -->
+    <div class="p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] mb-3">
+      <div class="flex justify-between items-center text-xs mb-1.5">
+        <span class="font-bold">Диск C: (Системный SSD)</span>
+        <span class="text-[var(--muted-foreground)]">Свободно <b class="text-emerald-400 text-sm">41.8 ГБ</b> из 222.7 ГБ (18.8%)</span>
+      </div>
+      <div class="w-full h-3 rounded-full bg-[var(--border)] overflow-hidden flex">
+        <div class="h-full bg-sky-500" style="width: 81.2%"></div>
+        <div class="h-full bg-emerald-500" style="width: 8.6%" title="Освобождено в этой сессии"></div>
+      </div>
+      <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)] mt-1.5">
+        <span>Было свободно: 22.7 ГБ (10.2%)</span>
+        <span class="text-emerald-500 font-medium">▲ +19.1 ГБ очищено</span>
+        <span>Цель: &gt;48 ГБ</span>
+      </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <div class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+        <div class="text-[var(--muted-foreground)] text-xs">Уже удалено</div>
+        <div class="text-base font-bold text-emerald-400 mt-0.5">19.1 ГБ</div>
+        <div class="text-[10px] text-[var(--muted-foreground)]">Мусор + одобренный софт</div>
+      </div>
+      <div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+        <div class="text-[var(--muted-foreground)] text-xs">Ждёт запуска UAC</div>
+        <div class="text-base font-bold text-amber-400 mt-0.5">~6.9 ГБ</div>
+        <div class="text-[10px] text-[var(--muted-foreground)]">AutoCAD, 1C, Android SDK...</div>
+      </div>
+      <div class="p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
+        <div class="text-[var(--muted-foreground)] text-xs">Сохранено строго</div>
+        <div class="text-base font-bold text-sky-400 mt-0.5">100%</div>
+        <div class="text-[10px] text-[var(--muted-foreground)]">Курсач, скрины, VS, Office</div>
+      </div>
+    </div>
+
+    <!-- Details Sections -->
+    <div class="space-y-2 text-xs">
+      <div class="p-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+        <div class="font-semibold text-emerald-400 mb-1.5 flex items-center gap-1.5">
+          <span>✓</span> Успешно удалено и очищено:
+        </div>
+        <div class="grid grid-cols-2 gap-1 text-[var(--muted-foreground)]">
+          <div>• Системный кэш и дампы: <b class="text-[var(--foreground)]">12.4 ГБ</b></div>
+          <div>• BeamNG.drive (моды и видео): <b class="text-[var(--foreground)]">3.4 ГБ</b></div>
+          <div>• Steam Client: <b class="text-[var(--foreground)]">1.9 ГБ</b></div>
+          <div>• TLauncher & Minecraft: <b class="text-[var(--foreground)]">0.7 ГБ</b></div>
+          <div>• Google Drive (DriveFS кэш): <b class="text-[var(--foreground)]">0.23 ГБ</b></div>
+          <div>• Кэши AppData (AutoCAD, 1C, OBS): <b class="text-[var(--foreground)]">0.35 ГБ</b></div>
+        </div>
+      </div>
+
+      <div class="p-2.5 rounded-lg bg-[var(--background)] border border-amber-500/30">
+        <div class="font-semibold text-amber-400 mb-1 flex items-center justify-between">
+          <span>⏳ Программы Program Files (готов батник с UAC):</span>
+          <span class="text-amber-400 font-bold">+6.9 ГБ</span>
+        </div>
+        <p class="text-[11px] text-[var(--muted-foreground)] leading-relaxed">
+          AutoCAD 2026 (3.65 ГБ) • 1C Тонкий клиент (1.0 ГБ) • Android SDK (0.83 ГБ) • Paint.NET (0.61 ГБ) • OBS Studio (0.46 ГБ) • SQL Server LocalDB (0.31 ГБ).
+        </p>
+      </div>
+
+      <div class="p-2.5 rounded-lg bg-[var(--background)] border border-sky-500/30">
+        <div class="font-semibold text-sky-400 mb-1">🛡️ Неприкосновенные файлы (в полной безопасности):</div>
+        <p class="text-[11px] text-[var(--muted-foreground)]">
+          Курсовая работа (архив и папка), все скриншоты, Visual Studio 2022, .NET SDK, VS Code, Google Antigravity, дистрибутив и установленный Microsoft Office, Adobe Photoshop CS6.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
