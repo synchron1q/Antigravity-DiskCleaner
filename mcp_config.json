@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "disk-cleaner-mcp": {
+      "command": "python",
+      "args": [
+        "skills/disk-cleaner/scripts/mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
